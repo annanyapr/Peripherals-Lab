@@ -15,20 +15,23 @@ RDKBD: EQU 03BAH
   
 CALL CLEAR
 
+; Take input for  timer (hour minute)
 MVI A,00H
 MVI B,00H
-Call GTHEX   				; Take input for  timer
+Call GTHEX   				
 MOV H,D
 MOV L,E
 SHLD 9100H
 Call CLEAR
 
+; Take input for  timer (second)
 MVI A,00H
 MVI B,00H
 Call GTHEX
 MOV A, E
 LHLD 9100H
 
+; to wait for the keybord input to start the timer
 STA CURDT 
 SHLD CURAD 
 
@@ -43,8 +46,8 @@ LDA CURDT
 JMP SEC
 
 
-MIN:                                    ;      Store data in HL at address of CURAD 
-SHLD CURAD
+MIN:                         
+SHLD CURAD  			  ;     Store data in HL at address of CURAD 
 MVI A,59H                
 
 SEC:
@@ -55,21 +58,22 @@ CALL UPDAD                ;      Update Address field display
 CALL UPDDT                ;      Show the data display
 CALL DELAY                ;      Call function DELAY
 
-MVI A,0BH
-SIM						;check after each second if any interrupt is
-EI
+;		check after each second if any interrupt is made
+MVI A,0BH  				 
+SIM						 ; Unmask the iterrupts 
+EI						 ; enable the interrupt
 
 
 LDA CURDT                  
 MVI B,99H
-ADD B                 ;      Increment the value of data display by 1
+ADD B                 	  ;      Increment the value of data display by 1
 DAA                       
-CPI 99H                   ;      Compare the value in accumulator with 60H
-JNZ SEC                   ;      If the value in accumulator is not 60 then jump to SEC function 
+CPI 99H                   ;      Compare the value in accumulator with 99H
+JNZ SEC                   ;      If the value in accumulator is not 99 then jump to SEC function 
 
-;If the value of seconds hand is 60 it must be put to 0 and update Minutes hand.
+;If the value of seconds hand is 00 it must be put to 59 and update Minutes hand.
 
-LHLD CURAD                
+LHLD CURAD
 
 MOV A,L                   
 MVI B,99H
@@ -77,10 +81,10 @@ ADD B
 DAA                     
 MOV L,A                  
 
-CPI 99H                   ;      Compare the value in accumulator to 60H
-JNZ MIN                   ;      If the value in accumulator is not 60 them jump to MIN function
+CPI 99H                   ;      Compare the value in accumulator to 99H
+JNZ MIN                   ;      If the value in accumulator is not 99H them jump to MIN function
 
-;If the value of minutes hand is 60 it must be put to 0 and update Hours hand.
+;If the value of minutes hand is 00 it must be put to 59 and update Hours hand.
 
 MVI L,59H                 
 MOV A,H                   
@@ -89,11 +93,10 @@ ADD B
 DAA                      
 MOV H,A                   
 
-CPI 99H                   ;      Compare the value in accumulator to 12 ( max hour hand is 12 )
-JNZ MIN                   ;      If the value in accumulator is not 12 jump to MIN function
-JMP END                 ;      Unconditional jump to BEGIN function 
+CPI 99H                  
+JNZ MIN                  
+JMP END                 ;      Unconditional jump to END function 
 
-; If hours hand exceeds 11 we need to change it to 0
 
 DELAY:                    ;      Delay function
 MVI C,03H                 
@@ -110,12 +113,12 @@ DCR C
 JNZ OUTLOOP               ;      As long as the memory of C is not 00H jump to OUTLOOP
 RET                       ;      Return 
 
-INTR:  						;ISR to store values of program
-	PUSH PSW
-	CALL RDKBD 			
-	POP PSW					;values
-	EI
-	RET
+INTR:  						
+	PUSH PSW			; Push the program status in stack
+	CALL RDKBD 			; wait for the keyboard input
+	POP PSW				; pop the program status from stack
+	EI					; Enable the interrupt again 
+	RET  				; rerturn to the called function
 
 
 END:

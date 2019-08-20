@@ -15,20 +15,23 @@
                   
  9000 CDBE02    CALL CLEAR
                 
+                ; Take input for  timer (hour minute)
  9003 3E00      MVI A,00H
  9005 0600      MVI B,00H
- 9007 CD0E03    Call GTHEX   				; Take input for  timer
+ 9007 CD0E03    Call GTHEX   				
  900A 62        MOV H,D
  900B 6B        MOV L,E
  900C 220091    SHLD 9100H
  900F CDBE02    Call CLEAR
                 
+                ; Take input for  timer (second)
  9012 3E00      MVI A,00H
  9014 0600      MVI B,00H
  9016 CD0E03    Call GTHEX
  9019 7B        MOV A, E
  901A 2A0091    LHLD 9100H
                 
+                ; to wait for the keybord input to start the timer
  901D 32F18F    STA CURDT 
  9020 22EF8F    SHLD CURAD 
                 
@@ -43,8 +46,8 @@
  9032 C33A90    JMP SEC
                 
                 
- 9035           MIN:                                    ;      Store data in HL at address of CURAD 
- 9035 22EF8F    SHLD CURAD
+ 9035           MIN:                         
+ 9035 22EF8F    SHLD CURAD  			  ;     Store data in HL at address of CURAD 
  9038 3E59      MVI A,59H                
                 
  903A           SEC:
@@ -55,21 +58,22 @@
  9040 CD4C04    CALL UPDDT                ;      Show the data display
  9043 CD7490    CALL DELAY                ;      Call function DELAY
                 
- 9046 3E0B      MVI A,0BH
- 9048 30        SIM						;check after each second if any interrupt is
- 9049 FB        EI
+                ;		check after each second if any interrupt is made
+ 9046 3E0B      MVI A,0BH  				 
+ 9048 30        SIM						 ; Unmask the iterrupts 
+ 9049 FB        EI						 ; enable the interrupt
                 
                 
  904A 3AF18F    LDA CURDT                  
  904D 0699      MVI B,99H
- 904F 80        ADD B                 ;      Increment the value of data display by 1
+ 904F 80        ADD B                 	  ;      Increment the value of data display by 1
  9050 27        DAA                       
- 9051 FE99      CPI 99H                   ;      Compare the value in accumulator with 60H
- 9053 C23A90    JNZ SEC                   ;      If the value in accumulator is not 60 then jump to SEC function 
+ 9051 FE99      CPI 99H                   ;      Compare the value in accumulator with 99H
+ 9053 C23A90    JNZ SEC                   ;      If the value in accumulator is not 99 then jump to SEC function 
                 
-                ;If the value of seconds hand is 60 it must be put to 0 and update Minutes hand.
+                ;If the value of seconds hand is 00 it must be put to 59 and update Minutes hand.
                 
- 9056 2AEF8F    LHLD CURAD                
+ 9056 2AEF8F    LHLD CURAD
                 
  9059 7D        MOV A,L                   
  905A 0699      MVI B,99H
@@ -77,10 +81,10 @@
  905D 27        DAA                     
  905E 6F        MOV L,A                  
                 
- 905F FE99      CPI 99H                   ;      Compare the value in accumulator to 60H
- 9061 C23590    JNZ MIN                   ;      If the value in accumulator is not 60 them jump to MIN function
+ 905F FE99      CPI 99H                   ;      Compare the value in accumulator to 99H
+ 9061 C23590    JNZ MIN                   ;      If the value in accumulator is not 99H them jump to MIN function
                 
-                ;If the value of minutes hand is 60 it must be put to 0 and update Hours hand.
+                ;If the value of minutes hand is 00 it must be put to 59 and update Hours hand.
                 
  9064 2E59      MVI L,59H                 
  9066 7C        MOV A,H                   
@@ -89,11 +93,10 @@
  906A 27        DAA                      
  906B 67        MOV H,A                   
                 
- 906C FE99      CPI 99H                   ;      Compare the value in accumulator to 12 ( max hour hand is 12 )
- 906E C23590    JNZ MIN                   ;      If the value in accumulator is not 12 jump to MIN function
- 9071 C38B90    JMP END                 ;      Unconditional jump to BEGIN function 
+ 906C FE99      CPI 99H                  
+ 906E C23590    JNZ MIN                  
+ 9071 C38B90    JMP END                 ;      Unconditional jump to END function 
                 
-                ; If hours hand exceeds 11 we need to change it to 0
                 
  9074           DELAY:                    ;      Delay function
  9074 0E03      MVI C,03H                 
@@ -110,12 +113,12 @@
  9080 C27690    JNZ OUTLOOP               ;      As long as the memory of C is not 00H jump to OUTLOOP
  9083 C9        RET                       ;      Return 
                 
- 9084           INTR:  						;ISR to store values of program
- 9084 F5        	PUSH PSW
- 9085 CDBA03    	CALL RDKBD 			
- 9088 F1        	POP PSW					;values
- 9089 FB        	EI
- 908A C9        	RET
+ 9084           INTR:  						
+ 9084 F5        	PUSH PSW			; Push the program status in stack
+ 9085 CDBA03    	CALL RDKBD 			; wait for the keyboard input
+ 9088 F1        	POP PSW				; pop the program status from stack
+ 9089 FB        	EI					; Enable the interrupt again 
+ 908A C9        	RET  				; rerturn to the called function
                 
                 
  908B           END:
