@@ -10,16 +10,26 @@ CLEAR: EQU 02BEH
 org 9000h
 
 LDA 8200h
-MOV H,A
-MVI A,8BH
-OUT 03H
+MOV H,A  			;H stores location of boss floor (01H is first,02H is second, 04H is third and so on)
+MVI A, 8BH		;sets 8255 to mode 0 with port A as out port and port B as in port
+OUT 03H			;each floor defines one level of the elevator.  By default the elevator starts from floor zero
+
+				;Lift travels in one direction servicing all requests in that direction only.  Changes
+				;direction only if there are no requests above the lift.  In all cases lift returns to
+				;floor0 (it is assumed all elevator users have a destination as floor0).  Input is taken
+				;in from LCI port B using 8 bit dip switch.  In case boss floor request comes, boss request
+				;is given top priority and will be serviced first.  All other requests will have to wait
+				;until boss reaches floor0.  Once boss request is serviced, elevator returns to normal
+				;functioning.  Note that boss floor must be predefined in memory location 8200H before 
+				;running the program
+
 
 FLOOR0:
-	MVI B,01H
-	MVI A,00H 
-	STA 8202H
-	OUT 00H
-	CALL DELAY 
+	MVI B,01H 	;B is direction of elevator, set to 01H if moving up and 00H if moving down
+	MVI A,00H 	
+	STA 8202H	
+	OUT 00H		
+	CALL DELAY 	
 	IN 01H
 	ANA H
 	CMP H 
@@ -190,7 +200,6 @@ FLOOR7:
 	CPI 00H 
 	JZ FLOOR6
 	IN 01H
-	ANI 0C0H
 	CPI 40H
 	MVI B,00H
 	JC FLOOR6
@@ -213,7 +222,6 @@ FLOOR8:
 	CMP H 
 	JZ BOSS
 	IN 01H
-	ANI 080H
 	CPI 80H	
 	JC FLOOR7
 	JZ FLOOR8
