@@ -1,4 +1,4 @@
-### 3. A) Start/Pause/Halt LEDs
+### 4. A) Start/Pause/Halt LEDs
   * First we configured the Ports of the 8255 using Control Word (Setting it to 8B) to set Mode = 0 and configure A,B,C ports    accordingly.
   * Then we compared to input to specific numbers(By ANDing them first and Comparing with the same number)
    Eg. D5 has to used for Pausing.So D5 bit 1 and rest 0 will make input as 40H.So we do AND and CPI with 40H.If they are 
