@@ -14,7 +14,7 @@ MVI A,8BH                ; ports initialization for both peripherals.
 OUT 43H					
 
 MVI A,80H
-OUT 03H                 ; motor ka port 
+OUT 03H              
 
 
 MVI A,88H
